@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"reflect"
 	"runtime"
+	// "golang.org/x/net/http2"
 )
 
 func hello(w http.ResponseWriter, r *http.Request) {
@@ -42,5 +43,6 @@ func main() {
 	// https用 設定
 	// cert.pem :SSL証明書
 	// key.pem	:サーバ証明書
+	// http2.ConfigureServer(&server, &http2.Server{})
 	// server.ListenAndServeTLS("cert.pem", "key.pem")
 }
