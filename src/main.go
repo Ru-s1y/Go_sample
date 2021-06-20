@@ -5,37 +5,28 @@ import (
 	"net/http"
 )
 
-type HelloHandler struct{}
-
-func (h *HelloHandler) ServeHTTP (w http.ResponseWriter, r *http.Request) {
+func hello(w http.ResponseWriter, r *http.Request) {
 	fmt.Fprintf(w, "Hello!")
 }
 
-type WorldHandler struct{}
-
-func (h *WorldHandler) ServeHTTP (w http.ResponseWriter, r *http.Request) {
+func world(w http.ResponseWriter, r *http.Request) {
 	fmt.Fprintf(w, "World!")
 }
 
-type MyHandler struct{}
-
-func (h *MyHandler) ServeHTTP (w http.ResponseWriter, r *http.Request) {
-	fmt.Fprintf(w, "Hello World!")
+func home(w http.ResponseWriter, r *http.Request) {
+	fmt.Fprintf(w, "hello world!!")
 }
 
 func main() {
-	handler := MyHandler{}
-	hello := HelloHandler{}
-	world := WorldHandler{}
-
 	server := http.Server{
 		Addr:		"127.0.0.1:8000",
 	}
 
-	http.Handle("/", &handler)
-	http.Handle("/hello", &hello)
-	http.Handle("/world", &world)
+	http.HandleFunc("/", home)
+	http.HandleFunc("/hello", hello)
+	http.HandleFunc("/world", world)
 
+	// http用
 	server.ListenAndServe()
 
 	// https用 設定
