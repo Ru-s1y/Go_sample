@@ -2,29 +2,33 @@ package main
 
 import (
 	"fmt"
+	"io/ioutil"
 	"net/http"
-	"reflect"
-	"runtime"
-	// "golang.org/x/net/http2"
 )
 
-func hello(w http.ResponseWriter, r *http.Request) {
+func index(w http.ResponseWriter, r *http.Request) {
 	fmt.Fprintf(w, "Hello!")
 }
 
-func world(w http.ResponseWriter, r *http.Request) {
-	fmt.Fprintf(w, "World!")
+func headers(w http.ResponseWriter, r  *http.Request) {
+	h := r.Header.Get("Accept-Encoding")
+	fmt.Fprintln(w, h)
 }
 
-func home(w http.ResponseWriter, r *http.Request) {
-	fmt.Fprintf(w, "hello world!!")
+func body(w http.ResponseWriter, r *http.Request) {
+	len := r.ContentLength
+	body := make([]byte, len)
+	r.Body.Read(body)
+	fmt.Fprintln(w, string(body))
 }
 
-func log(h http.HandlerFunc) http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-		name := runtime.FuncForPC(reflect.ValueOf(h).Pointer()).Name()
-		fmt.Println("Handler function colled - " + name)
-		h(w, r)
+func process(w http.ResponseWriter, r *http.Request) {
+	file, _, err := r.FormFile("uploaded")
+	if err == nil {
+		data, err := ioutil.ReadAll(file)
+		if err == nil {
+			fmt.Fprintln(w, string(data))
+		}
 	}
 }
 
@@ -33,16 +37,9 @@ func main() {
 		Addr:		"127.0.0.1:8000",
 	}
 
-	http.HandleFunc("/", log(home))
-	http.HandleFunc("/hello", hello)
-	http.HandleFunc("/world", world)
-
-	// http用
+	http.HandleFunc("/", index)
+	http.HandleFunc("/headers", headers)
+	http.HandleFunc("/body", body)
+	http.HandleFunc("/process", process)
 	server.ListenAndServe()
-
-	// https用 設定
-	// cert.pem :SSL証明書
-	// key.pem	:サーバ証明書
-	// http2.ConfigureServer(&server, &http2.Server{})
-	// server.ListenAndServeTLS("cert.pem", "key.pem")
 }
