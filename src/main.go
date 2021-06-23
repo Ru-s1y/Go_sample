@@ -2,11 +2,13 @@ package main
 
 import (
 	"fmt"
-	"io/ioutil"
 	"encoding/json"
 	"encoding/base64"
 	"net/http"
 	"time"
+	"html/template"
+	// "io/ioutil"
+	// "math/rand"
 )
 
 type Post struct {
@@ -30,14 +32,16 @@ func body(w http.ResponseWriter, r *http.Request) {
 	fmt.Fprintln(w, string(body))
 }
 
+func formatDate(t time.Time) string {
+	layout := "2006-01-02"
+	return t.Format(layout)
+}
+
 func process(w http.ResponseWriter, r *http.Request) {
-	file, _, err := r.FormFile("uploaded")
-	if err == nil {
-		data, err := ioutil.ReadAll(file)
-		if err == nil {
-			fmt.Fprintln(w, string(data))
-		}
-	}
+	funcMap := template.FuncMap { "fdate": formatDate }
+	t := template.New("tmpl.html").Funcs(funcMap)
+	t, _ = t.ParseFiles("tmpl.html")
+	t.Execute(w, time.Now())
 }
 
 func writeExample(w http.ResponseWriter, r *http.Request) {
