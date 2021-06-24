@@ -44,6 +44,12 @@ func process(w http.ResponseWriter, r *http.Request) {
 	t.Execute(w, time.Now())
 }
 
+func processContext(w http.ResponseWriter, r *http.Request) {
+	t, _ := template.ParseFiles("cxt_tmpl.html")
+	content := `I asked: <i>"What's up?</i>"`
+	t.Execute(w, content)
+}
+
 func writeExample(w http.ResponseWriter, r *http.Request) {
 	str := `<html>
 <head><title>Go Web Programming</title></head>
@@ -126,6 +132,18 @@ func showMessage(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+func processForm(w http.ResponseWriter, r *http.Request) {
+	// w.Header().Set("X-XSS-Protection", "0") // JavaScript 埋め込み用
+	t, _ := template.ParseFiles("form_tmpl.html")
+	// t.Execute(w, template.HTML(r.FormValue("comment"))) // JavaScript 埋め込み用
+	t.Execute(w, r.FormValue("comment"))
+}
+
+func form(w http.ResponseWriter, r *http.Request) {
+	t, _ := template.ParseFiles("form.html")
+	t.Execute(w, nil)
+}
+
 func main() {
 	server := http.Server{
 		Addr:		"127.0.0.1:8000",
@@ -143,5 +161,8 @@ func main() {
 	http.HandleFunc("/get_cookie", getCookie)
 	http.HandleFunc("/set_message", setMessage)
 	http.HandleFunc("/show_message", showMessage)
+	http.HandleFunc("/process_context", processContext)
+	http.HandleFunc("/process_form", processForm)
+	http.HandleFunc("/form", form)
 	server.ListenAndServe()
 }
