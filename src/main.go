@@ -150,7 +150,7 @@ func processLayout(w http.ResponseWriter, r *http.Request) {
 	if rand.Intn(10) > 5 {
 		t, _ = template.ParseFiles("web/layout.html", "web/red_hello.html")
 	} else {
-		t, _ = template.ParseFiles("web/layout.html", "web/blue_hello.html")
+		t, _ = template.ParseFiles("web/layout.html")
 	}
 	t.ExecuteTemplate(w, "layout", "")
 }
