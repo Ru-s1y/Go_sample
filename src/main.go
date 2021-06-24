@@ -2,11 +2,13 @@ package main
 
 import (
 	"fmt"
-	"io/ioutil"
 	"encoding/json"
 	"encoding/base64"
 	"net/http"
 	"time"
+	"html/template"
+	// "io/ioutil"
+	"math/rand"
 )
 
 type Post struct {
@@ -30,14 +32,22 @@ func body(w http.ResponseWriter, r *http.Request) {
 	fmt.Fprintln(w, string(body))
 }
 
+func formatDate(t time.Time) string {
+	layout := "2006-01-02"
+	return t.Format(layout)
+}
+
 func process(w http.ResponseWriter, r *http.Request) {
-	file, _, err := r.FormFile("uploaded")
-	if err == nil {
-		data, err := ioutil.ReadAll(file)
-		if err == nil {
-			fmt.Fprintln(w, string(data))
-		}
-	}
+	funcMap := template.FuncMap { "fdate": formatDate }
+	t := template.New("tmpl.html").Funcs(funcMap)
+	t, _ = t.ParseFiles("web/tmpl.html")
+	t.Execute(w, time.Now())
+}
+
+func processContext(w http.ResponseWriter, r *http.Request) {
+	t, _ := template.ParseFiles("web/cxt_tmpl.html")
+	content := `I asked: <i>"What's up?</i>"`
+	t.Execute(w, content)
 }
 
 func writeExample(w http.ResponseWriter, r *http.Request) {
@@ -122,6 +132,29 @@ func showMessage(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+func processForm(w http.ResponseWriter, r *http.Request) {
+	// w.Header().Set("X-XSS-Protection", "0") // JavaScript 埋め込み用
+	t, _ := template.ParseFiles("web/form_tmpl.html")
+	// t.Execute(w, template.HTML(r.FormValue("comment"))) // JavaScript 埋め込み用
+	t.Execute(w, r.FormValue("comment"))
+}
+
+func form(w http.ResponseWriter, r *http.Request) {
+	t, _ := template.ParseFiles("web/form.html")
+	t.Execute(w, nil)
+}
+
+func processLayout(w http.ResponseWriter, r *http.Request) {
+	rand.Seed(time.Now().Unix())
+	var t *template.Template
+	if rand.Intn(10) > 5 {
+		t, _ = template.ParseFiles("web/layout.html", "web/red_hello.html")
+	} else {
+		t, _ = template.ParseFiles("web/layout.html")
+	}
+	t.ExecuteTemplate(w, "layout", "")
+}
+
 func main() {
 	server := http.Server{
 		Addr:		"127.0.0.1:8000",
@@ -139,5 +172,9 @@ func main() {
 	http.HandleFunc("/get_cookie", getCookie)
 	http.HandleFunc("/set_message", setMessage)
 	http.HandleFunc("/show_message", showMessage)
+	http.HandleFunc("/process_context", processContext)
+	http.HandleFunc("/process_form", processForm)
+	http.HandleFunc("/form", form)
+	http.HandleFunc("/process_layout", processLayout)
 	server.ListenAndServe()
 }
