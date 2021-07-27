@@ -1,4 +1,7 @@
 pkg
 cert.pem
 key.pem
-sample_app
+bin
+src/github.com
+src/golang.org
+src/gopkg.in
